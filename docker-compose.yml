@@ -55,6 +55,16 @@ services:
       - "9001:9001"
     volumes:
       - minio_data:/data
+  trip-postgres:
+    image: postgres:16
+    container_name: trailsync-trip-postgres
+    environment:
+      POSTGRES_DB: trailsync_trip
+      POSTGRES_USER: trail
+      POSTGRES_PASSWORD: secret
+    ports:
+      - "5434:5432"
 volumes:
   postgres_data:
   minio_data:
+  trip_postgres_data:
