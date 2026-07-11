@@ -1,14 +1,13 @@
-package com.trek.summitBase;
+package com.notificationService.trip;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class SummitBaseApplication {
+public class TripApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(SummitBaseApplication.class, args);
+		SpringApplication.run(TripApplication.class, args);
 	}
 
 }
-
