@@ -1,0 +1,103 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: api-gateway
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  cloud:
+    gateway:
+      routes:
+
+        # Auth Service routes — no JWT filter on login/register
+        - id: auth-service
+          uri: http://localhost:8080
+          predicates:
+            - Path=/auth/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                key-resolver: "#{@ipKeyResolver}"
+
+        # OAuth2 routes — no JWT filter
+        - id: oauth2-route
+          uri: http://localhost:8080
+          predicates:
+            - Path=/oauth2/**,/login/**
+
+        # Trail Service routes — public GET, protected POST/PUT/DELETE
+        - id: trail-service
+          uri: http://localhost:8081
+          predicates:
+            - Path=/trails/**
+          filters:
+            - name: JwtAuthFilter
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 20
+                redis-rate-limiter.burstCapacity: 40
+                key-resolver: "#{@ipKeyResolver}"
+
+        # Trip Service routes — all protected
+        - id: trip-service
+          uri: http://localhost:8082
+          predicates:
+            - Path=/trips/**
+          filters:
+            - name: JwtAuthFilter
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                key-resolver: "#{@ipKeyResolver}"
+
+        # Notification Service routes
+        - id: notification-service
+          uri: http://localhost:8083
+          predicates:
+            - Path=/notifications/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 5
+                redis-rate-limiter.burstCapacity: 10
+                key-resolver: "#{@ipKeyResolver}"
+
+      # Global CORS config
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:3000"
+              - "http://localhost:4200"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
+
+# JWT secret — same as all services
+jwt:
+  secret: dGhpcyBpcyBhIHZlcnkgc2VjdXJlIHNlY3JldCBrZXkgZm9yIHN1bW1pdEJhc2UgYXBwbGljYXRpb24=
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+  endpoint:
+    gateway:
+      enabled: true

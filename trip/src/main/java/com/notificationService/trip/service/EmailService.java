@@ -31,7 +31,6 @@ public class EmailService {
             Thread.sleep(1100);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-
         } catch (Exception e) {
             log.error("Failed to send email to {}: {}", request.getTo(), e.getMessage());
             throw new RuntimeException("Email sending failed: " + e.getMessage());
